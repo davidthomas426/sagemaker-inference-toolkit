@@ -265,4 +265,5 @@ def test_retrieve_mms_server_process_too_many_servers(process_iter):
 @patch("sagemaker_inference.model_server._retrieve_mms_server_process", return_value=17)
 def test_retry_retrieve_mms_server_process(retrieve, retry):
     process_id = model_server._retry_retrieve_mms_server_process(100)
+    assert process_id == 17
     retry.assert_called_once_with(stop_max_delay=100*1000)
