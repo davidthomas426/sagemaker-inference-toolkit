@@ -222,7 +222,6 @@ def test_install_requirements_installation_failed(check_call):
     assert "failed to install required packages" in str(e.value)
 
 
-@patch("retrying.Retrying.should_reject", return_value=False)
 @patch("psutil.process_iter")
 def test_retrieve_mms_server_process(process_iter, retry):
     server = Mock()
@@ -237,19 +236,15 @@ def test_retrieve_mms_server_process(process_iter, retry):
 
     assert process == server
 
-
-@patch("retrying.Retrying.should_reject", return_value=False)
 @patch("psutil.process_iter", return_value=list())
-def test_retrieve_mms_server_process_no_server(process_iter, retry):
+def test_retrieve_mms_server_process_no_server(process_iter):
     with pytest.raises(Exception) as e:
         model_server._retrieve_mms_server_process()
 
     assert "mms model server was unsuccessfully started" in str(e.value)
 
-
-@patch("retrying.Retrying.should_reject", return_value=False)
 @patch("psutil.process_iter")
-def test_retrieve_mms_server_process_too_many_servers(process_iter, retry):
+def test_retrieve_mms_server_process_too_many_servers(process_iter):
     server = Mock()
     second_server = Mock()
     server.cmdline.return_value = MMS_NAMESPACE
@@ -265,3 +260,9 @@ def test_retrieve_mms_server_process_too_many_servers(process_iter, retry):
         model_server._retrieve_mms_server_process()
 
     assert "multiple mms model servers are not supported" in str(e.value)
+
+@patch("retrying.retry", return_value=lambda f: f)
+@patch("sagemaker_inference.model_server._retrieve_mms_server_process", return_value=17)
+def test_retry_retrieve_mms_server_process(retrieve, retry):
+    process_id = model_server._retry_retrieve_mms_server_process(100)
+    retry.assert_called_once_with(stop_max_delay=100*1000)
