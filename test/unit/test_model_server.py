@@ -27,13 +27,15 @@ DEFAULT_CONFIGURATION = "default_configuration"
 
 @patch("subprocess.call")
 @patch("subprocess.Popen")
-@patch("sagemaker_inference.model_server._retrieve_mms_server_process")
+@patch("sagemaker_inference.model_server._retry_retrieve_mms_server_process")
 @patch("sagemaker_inference.model_server._add_sigterm_handler")
 @patch("sagemaker_inference.model_server._install_requirements")
 @patch("os.path.exists", return_value=True)
 @patch("sagemaker_inference.model_server._create_model_server_config_file")
 @patch("sagemaker_inference.model_server._adapt_to_mms_format")
+@patch("sagemaker_inference.environment.Environment")
 def test_start_model_server_default_service_handler(
+    env,
     adapt,
     create_config,
     exists,
@@ -43,10 +45,12 @@ def test_start_model_server_default_service_handler(
     subprocess_popen,
     subprocess_call,
 ):
+    env.return_value.startup_timeout = 10000
+
     model_server.start_model_server()
 
     adapt.assert_called_once_with(model_server.DEFAULT_HANDLER_SERVICE)
-    create_config.assert_called_once_with()
+    create_config.assert_called_once_with(env)
     exists.assert_called_once_with(REQUIREMENTS_PATH)
     install_requirements.assert_called_once_with()
 
@@ -67,7 +71,7 @@ def test_start_model_server_default_service_handler(
 
 @patch("subprocess.call")
 @patch("subprocess.Popen")
-@patch("sagemaker_inference.model_server._retrieve_mms_server_process")
+@patch("sagemaker_inference.model_server._retry_retrieve_mms_server_process")
 @patch("sagemaker_inference.model_server._add_sigterm_handler")
 @patch("sagemaker_inference.model_server._create_model_server_config_file")
 @patch("sagemaker_inference.model_server._adapt_to_mms_format")
@@ -223,7 +227,7 @@ def test_install_requirements_installation_failed(check_call):
 
 
 @patch("psutil.process_iter")
-def test_retrieve_mms_server_process(process_iter, retry):
+def test_retrieve_mms_server_process(process_iter):
     server = Mock()
     server.cmdline.return_value = MMS_NAMESPACE
 
