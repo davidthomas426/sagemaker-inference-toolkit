@@ -169,7 +169,9 @@ def test_generate_mms_config_properties(env, read_file):
     env.return_value.model_server_workers = model_server_workers
     env.return_value.inference_http_port = http_port
 
-    mms_config_properties = model_server._generate_mms_config_properties()
+    env_value = env()
+
+    mms_config_properties = model_server._generate_mms_config_properties(env_value)
 
     inference_address = "inference_address=http://0.0.0.0:{}\n".format(http_port)
     server_timeout = "default_response_timeout={}\n".format(model_server_timeout)
@@ -188,7 +190,9 @@ def test_generate_mms_config_properties(env, read_file):
 def test_generate_mms_config_properties_default_workers(env, read_file):
     env.return_value.model_server_workers = None
 
-    mms_config_properties = model_server._generate_mms_config_properties()
+    env_value = env()
+
+    mms_config_properties = model_server._generate_mms_config_properties(env)
 
     workers = "default_workers_per_model={}".format(None)
 
