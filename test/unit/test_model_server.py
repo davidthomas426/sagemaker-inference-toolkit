@@ -153,7 +153,7 @@ def test_new_python_path():
 @patch("sagemaker_inference.environment.Environment")
 def test_create_model_server_config_file(env, write_file, generate_mms_config_props):
 
-    model_server._create_model_server_config_file()
+    model_server._create_model_server_config_file(env.return_value)
 
     write_file.assert_called_once_with(
         model_server.MMS_CONFIG_FILE, generate_mms_config_props.return_value
