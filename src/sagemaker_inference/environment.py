@@ -23,7 +23,7 @@ logger = logging.get_logger()
 
 DEFAULT_MODULE_NAME = "inference.py"
 DEFAULT_MODEL_SERVER_TIMEOUT = "60"
-DEFAULT_STARTUP_TIMEOUT = "600" # 10 minutes
+DEFAULT_STARTUP_TIMEOUT = "600"  # 10 minutes
 DEFAULT_HTTP_PORT = "8080"
 
 SAGEMAKER_BASE_PATH = os.path.join("/opt", "ml")  # type: str
@@ -113,7 +113,7 @@ class Environment(object):
         return self._model_server_workers
 
     @property
-    def startup_timeout(self): #type () -> int
+    def startup_timeout(self):  # type () -> int
         """int: Timeout, in seconds, used for starting up the model server and fetching
         its process id, before giving up and throwing error.
         """

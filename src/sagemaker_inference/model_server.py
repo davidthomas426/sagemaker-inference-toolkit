@@ -191,9 +191,13 @@ def _install_requirements():
         logger.error("failed to install required packages, exiting")
         raise ValueError("failed to install required packages")
 
+
 def _retry_retrieve_mms_server_process(startup_timeout):
-    retrieve_mms_server_process = retry(wait_fixed=1000, stop_max_delay=startup_timeout * 1000)(_retrieve_mms_server_process)
+    retrieve_mms_server_process = retry(wait_fixed=1000, stop_max_delay=startup_timeout * 1000)(
+        _retrieve_mms_server_process
+    )
     return retrieve_mms_server_process()
+
 
 def _retrieve_mms_server_process():
     mms_server_processes = list()

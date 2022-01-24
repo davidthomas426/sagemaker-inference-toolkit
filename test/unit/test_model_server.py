@@ -242,12 +242,14 @@ def test_retrieve_mms_server_process(process_iter):
 
     assert process == server
 
+
 @patch("psutil.process_iter", return_value=list())
 def test_retrieve_mms_server_process_no_server(process_iter):
     with pytest.raises(Exception) as e:
         model_server._retrieve_mms_server_process()
 
     assert "mms model server was unsuccessfully started" in str(e.value)
+
 
 @patch("psutil.process_iter")
 def test_retrieve_mms_server_process_too_many_servers(process_iter):
@@ -267,9 +269,10 @@ def test_retrieve_mms_server_process_too_many_servers(process_iter):
 
     assert "multiple mms model servers are not supported" in str(e.value)
 
+
 @patch("sagemaker_inference.model_server.retry", return_value=lambda f: f)
 @patch("sagemaker_inference.model_server._retrieve_mms_server_process", return_value=17)
 def test_retry_retrieve_mms_server_process(retrieve, retry):
     process_id = model_server._retry_retrieve_mms_server_process(100)
     assert process_id == 17
-    retry.assert_called_once_with(wait_fixed=ANY, stop_max_delay=100*1000)
+    retry.assert_called_once_with(wait_fixed=ANY, stop_max_delay=100 * 1000)
