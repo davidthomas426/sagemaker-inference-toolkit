@@ -15,7 +15,7 @@ import signal
 import subprocess
 import types
 
-from mock import Mock, patch
+from mock import Mock, patch, ANY
 import pytest
 
 from sagemaker_inference import environment, model_server
@@ -50,7 +50,7 @@ def test_start_model_server_default_service_handler(
     model_server.start_model_server()
 
     adapt.assert_called_once_with(model_server.DEFAULT_HANDLER_SERVICE)
-    create_config.assert_called_once_with(env)
+    create_config.assert_called_once_with(env.return_value)
     exists.assert_called_once_with(REQUIREMENTS_PATH)
     install_requirements.assert_called_once_with()
 
@@ -150,7 +150,9 @@ def test_new_python_path():
 
 @patch("sagemaker_inference.model_server._generate_mms_config_properties")
 @patch("sagemaker_inference.utils.write_file")
-def test_create_model_server_config_file(write_file, generate_mms_config_props):
+@patch("sagemaker_inference.environment.Environment")
+def test_create_model_server_config_file(env, write_file, generate_mms_config_props):
+
     model_server._create_model_server_config_file()
 
     write_file.assert_called_once_with(
@@ -169,9 +171,7 @@ def test_generate_mms_config_properties(env, read_file):
     env.return_value.model_server_workers = model_server_workers
     env.return_value.inference_http_port = http_port
 
-    env_value = env()
-
-    mms_config_properties = model_server._generate_mms_config_properties(env_value)
+    mms_config_properties = model_server._generate_mms_config_properties(env.return_value)
 
     inference_address = "inference_address=http://0.0.0.0:{}\n".format(http_port)
     server_timeout = "default_response_timeout={}\n".format(model_server_timeout)
@@ -190,9 +190,7 @@ def test_generate_mms_config_properties(env, read_file):
 def test_generate_mms_config_properties_default_workers(env, read_file):
     env.return_value.model_server_workers = None
 
-    env_value = env()
-
-    mms_config_properties = model_server._generate_mms_config_properties(env)
+    mms_config_properties = model_server._generate_mms_config_properties(env.return_value)
 
     workers = "default_workers_per_model={}".format(None)
 
@@ -269,9 +267,9 @@ def test_retrieve_mms_server_process_too_many_servers(process_iter):
 
     assert "multiple mms model servers are not supported" in str(e.value)
 
-@patch("retrying.retry", return_value=lambda f: f)
+@patch("sagemaker_inference.model_server.retry", return_value=lambda f: f)
 @patch("sagemaker_inference.model_server._retrieve_mms_server_process", return_value=17)
 def test_retry_retrieve_mms_server_process(retrieve, retry):
     process_id = model_server._retry_retrieve_mms_server_process(100)
     assert process_id == 17
-    retry.assert_called_once_with(stop_max_delay=100*1000)
+    retry.assert_called_once_with(wait_fixed=ANY, stop_max_delay=100*1000)
